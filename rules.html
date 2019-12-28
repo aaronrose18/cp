@@ -1,0 +1,321 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+  <!-- basic.html -->
+  <title>Connection Setup</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <style>
+    table,
+    th,
+    td {
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 5px;
+    }
+
+    th {
+      text-align: left;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="main">
+    <nav aria-label="Navigation">
+      <ul class="pagination">
+        <li class="page-item"><a class="page-link" href="Rules.html">Rule Base</a></li>
+      </ul>
+    </nav>
+    <h1>Access Control Rules</h1>
+    <p>
+      <!-- Get access layers and show rulebase -->
+      <div class="btn-group">
+        <button type="button" class="btn btn-secondary">Access Layer:</button>
+        <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
+          aria-haspopup="true" aria-expanded="false">
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <div class="dropdown-menu" id="layers-dropdown">
+        </div>
+        <br>
+        <p id="showData"></p>
+      </div>
+    </p>
+    <br>
+    <br>
+    <br>
+    <p>
+      <h3>New Rule:</h3>
+      <form>
+        <div class="form-row">
+          <div class="col-auto">
+            <input type="text" class="form-control" placeholder="Source" id="source"><br>
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control" placeholder="Destination" id="destination"><br>
+          </div>
+          <div class="col-auto">
+            <select id="service" class="form-control position-static">
+              <option selected>Service</option>
+              <option>HTTP</option>
+              <option>HTTPS</option>
+              <option>DNS</option>
+              <option>SSH</option>
+            </select><br>
+          </div>
+          <div class="col-auto">
+            <select id="action" class="form-control position-static">
+              <option selected>Action</option>
+              <option>HTTP</option>
+              <option>HTTPS</option>
+            </select><br>
+          </div>
+          <div class="col-auto">
+            <select id="tracking" class="form-control position-static">
+              <option selected>Tracking</option>
+              <option>Log</option>
+              <option>None/option>
+            </select><br>
+          </div>
+          <div class="col-auto">
+            <select id="position" class="form-control position-static">
+              <option selected>Position</option>
+              <option>First</option>
+              <option>Last</option>
+              <option>Before Last</option>
+            </select>
+          </div>
+        </div>
+        <p>
+          <button type="submit" class="btn btn-success"
+            onclick="alert('Validating Rule...please wait')">Validate</button>
+          <button type="submit" class="btn btn-warning"
+            onclick="alert('Publishing Changes to Policy...please wait')">Publish</button>
+
+          <button type="reset" class="btn btn-danger">Reset</button>
+        </p>
+      </form>
+    </p>
+    <br>
+    <br>
+    <br>
+    <br>
+  </div>
+  <div id="setup">
+    <h3>Setup</h3>
+    <p>
+      Input the connection details and your user credentials below to establish a connection to the Check Point API
+      Server
+    </p>
+    <p>
+      <form onsubmit="return checkPointLogin(event)">
+        Management Server IP:<br>
+        <input type="text" name="ip" id="mgmt-ip"><br>
+        <br>
+        API Server Port (default = 18190)<br>
+        <input type="text" name="port" id="port-login" placeholder="18190"><br>
+        <br>
+        <br>
+        User name:<br>
+        <input type="text" name="username" id="user-login"><br>
+        User password:<br>
+        <input type="password" name="psw" id="password-login"><br>
+        <button type="submit" class="btn btn-success">Login</button>
+
+        <button type="reset" class="btn btn-danger" onclick="alert('Successfully Terminated Session')">Logout</button>
+      </form>
+    </p>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+</body>
+<script>
+  $('#main').hide()
+  async function checkPointLogin(e) {
+    e.preventDefault()
+    var mgmtIP = "192.168.1.253" // document.getElementById('mgmt-ip').value
+    var mgmtUser = "admin" // document.getElementById('user-login').value
+    var mgmtPass = "vpn123" // document.getElementById('password-login').value
+    var mgmtPort = "443" // document.getElementById('port-login').value
+    try {
+      var loginResponse = await fetch("https://" + mgmtIP + "/web_api/login", {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          "user": mgmtUser,
+          "password": mgmtPass
+        }
+        )
+      })
+      var json = await loginResponse.json()
+      var cpSid = json["sid"]
+    } catch (err) {
+      console.log('error: ', err)
+    }
+    console.log("SID is", cpSid)
+    // var settings = {
+    //   "url": "https://192.168.1.253/web_api/show-access-rulebase",
+    //   "method": "POST",
+    //   "timeout": 0,
+    //   "headers": {
+    //     "Content-Type": "application/json",
+    //     "X-chkp-sid": cpSid
+    //   },
+    //   "data": JSON.stringify({ "offset": 0, "limit": 20, "name": "Network", "details-level": "standard", "use-object-dictionary": true }),
+    // };
+
+    // $.ajax(settings).done(function (response) {
+    //   console.log(response);
+    // });
+
+
+    //Show access layers 
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("X-chkp-sid", cpSid);
+
+    var raw = JSON.stringify({
+      "limit": 50,
+      "offset": 0,
+      "details-level": "standard"
+    });
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
+    };
+
+    fetch("https://" + mgmtIP + "/web_api/show-access-layers", requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log("result", result)
+        populateAccessLayers(result["access-layers"], cpSid)
+        $('#setup').hide()
+        $('#main').show()
+      })
+      .catch(error => console.log('error', error));
+  }
+
+  //populate access layers
+  function populateAccessLayers(accessLayers, cpSid) {
+    console.log('access layers', accessLayers)
+    accessLayers.forEach((layer) => {
+      $('#layers-dropdown').append('<a class="dropdown-item" href="#" onclick="retrieveSelectedRulebase(\'' + layer.uid + '\'' + ',\'' + cpSid + '\'' + ')">' + layer.name + '</a>')
+    })
+  }
+
+  //function to retrieve rulebase of selected layer
+  async function retrieveSelectedRulebase(rulebaseId, cpSid) {
+    console.log('retrieving rulebase', rulebaseId)
+    var mgmtIP = "192.168.1.253" // document.getElementById('mgmt-ip').value
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("X-chkp-sid", cpSid);
+
+    var raw = JSON.stringify({
+      "offset": 0,
+      "limit": 50,
+      "uid": rulebaseId,
+      "details-level": "standard",
+      "use-object-dictionary": false
+    });
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
+    };
+
+    fetch("https://" + mgmtIP + "/web_api/show-access-rulebase", requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log("rulebase result", result)
+        CreateTableFromJSON(result.rulebase)
+      })
+      .catch(error => console.log('error', error));
+  }
+
+  function newrule() {
+    var source = document.getElementById('source').value
+    var destination = document.getElementById('destination').value
+    var service = document.getElementById('service').value
+    var action = document.getElementById('action').value
+    var position = document.getElementById('position').value
+  }
+
+
+
+  function CreateTableFromJSON(rulebase) {
+    var Rules = rulebase.map((rule) => (
+      {
+        "Rule Number": rule["rule-number"],
+        "Rule Name": rule.name,
+        "Source": rule.source[0].name,
+        "Destination": rule.destination[0].name,
+        "Service": rule.service[0].name,
+        "Action": rule.action.name,
+        "Tracking": rule.track.type.name
+      }
+    ))
+
+    console.log('rulessss', Rules)
+
+    // EXTRACT VALUE FOR HTML HEADER. 
+    var col = [];
+    for (var i = 0; i < Rules.length; i++) {
+      for (var key in Rules[i]) {
+        if (col.indexOf(key) === -1) {
+          col.push(key);
+        }
+      }
+    }
+
+    // CREATE DYNAMIC TABLE.
+    var table = document.createElement("table");
+
+
+    // CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
+
+    var tr = table.insertRow(-1);                   // TABLE ROW.
+
+    for (var i = 0; i < col.length; i++) {
+      var th = document.createElement("th");      // TABLE HEADER.
+      th.innerHTML = col[i];
+      tr.appendChild(th);
+    }
+
+    // ADD JSON DATA TO THE TABLE AS ROWS.
+    for (var i = 0; i < Rules.length; i++) {
+
+      tr = table.insertRow(-1);
+
+      for (var j = 0; j < col.length; j++) {
+        var tabCell = tr.insertCell(-1);
+        tabCell.innerHTML = Rules[i][col[j]];
+      }
+    }
+
+    // FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
+    var divContainer = document.getElementById("showData");
+    divContainer.innerHTML = "";
+    divContainer.appendChild(table);
+  }
+</script>
+
+</html>
