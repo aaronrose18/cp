@@ -98,12 +98,8 @@
               <div class="col-auto">
                 <label for="service">Service:</label>
                 <select multiple id="service" class="my-select" multiple data-live-search="true">
-                  <option>HTTP</option>
-                  <option>HTTPS</option>
-                  <option>DNS</option>
-                  <option>SSH</option>
-                  <optgroup id="TCPServices" label="TCP Services"></optgroup>
-                  <optgroup id="UDPServices" label="UDP Services"></optgroup>
+                  <optgroup id=TCPServices label="TCP Services"></optgroup>
+                  <optgroup id=UDPServices label="UDP Services"></optgroup>
                 </select>
               </div>
             </div>
@@ -138,9 +134,8 @@
 
             <!-- New Rule Form Buttons -->
             <p>
-              <button type="submit" class="btn btn-success" onclick="return newRule(event)">Add</button>
-              <button type="submit" class="btn btn-warning" onclick="return publishChanges(event)">Publish</button>
-              <button type="reset" class="btn btn-danger">Clear</button>
+              <button type="submit" class="btn btn-success" id="add-rule">Add</button>
+              <button type="reset" class="btn btn-danger" id="clear">Clear</button>
             </p>
           </form>
         </div>
@@ -151,52 +146,56 @@
     <br>
     <br>
     <br>
-  </div>
-  <!-- Setup & Login form -->
-  <div id="setup">
-    <h3>Setup</h3>
-    <p>
-      Input the connection details and your user credentials below to establish a connection to the Check Point API
-      Server
-    </p>
-    <p>
-      <form onsubmit="return checkPointLogin(event)">
-        Management Server IP:<br>
-        <input type="text" name="ip" id="mgmt-ip"><br>
-        <br>
-        API Server Port (default = 18190)<br>
-        <input type="text" name="port" id="port-login" placeholder="443"><br>
-        <br>
-        <br>
-        User name:<br>
-        <input type="text" name="username" id="user-login"><br>
-        User password:<br>
-        <input type="password" name="psw" id="password-login"><br>
-        <button type="submit" class="btn btn-success">Login</button>
 
-        <button type="reset" class="btn btn-danger" onclick="alert('Successfully Terminated Session')">Logout</button>
-      </form>
-    </p>
-  </div>
+    <!-- Setup & Login form -->
+    <div id="setup">
+      <h3>Setup</h3>
+      <p>
+        Input the connection details and your user credentials below to establish a connection to the Check Point API
+        Server
+      </p>
+      <p>
+        <form onsubmit="return checkPointLogin(event)">
+          Management Server IP:<br>
+          <input type="text" name="ip" id="mgmt-ip"><br>
+          <br>
+          API Server Port (default = 18190)<br>
+          <input type="text" name="port" id="port-login" placeholder="443"><br>
+          <br>
+          <br>
+          User name:<br>
+          <input type="text" name="username" id="user-login"><br>
+          User password:<br>
+          <input type="password" name="psw" id="password-login"><br>
+          <button type="submit" class="btn btn-success">Login</button>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-    crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-    crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.12/dist/js/bootstrap-select.min.js"></script>
+          <button type="reset" class="btn btn-danger" onclick="alert('Successfully Terminated Session')">Logout</button>
+        </form>
+      </p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.12/dist/js/bootstrap-select.min.js"></script>
   </div>
 </body>
 <script>
   $('#main').hide()
   $('#NewRuleForm').hide()
+  $('#clear').click(() => {
+    $('select').selectpicker('deselectAll')
+  })
+
   async function checkPointLogin(e) {
     e.preventDefault()
-    var mgmtIP = "10.0.1.247" // document.getElementById('mgmt-ip').value
-    var mgmtUser = "apiuser" // document.getElementById('user-login').value
-    var mgmtPass = "vpn123" // document.getElementById('password-login').value
-    var mgmtPort = "443" // document.getElementById('port-login').value
+    var mgmtIP = document.getElementById('mgmt-ip').value
+    var mgmtUser = document.getElementById('user-login').value
+    var mgmtPass = document.getElementById('password-login').value
+
     try {
       var loginResponse = await fetch("https://" + mgmtIP + "/web_api/login", {
         method: 'POST',
@@ -209,28 +208,18 @@
       })
       var json = await loginResponse.json()
       var cpSid = json["sid"]
+      $('#setup').hide()
+      $('#main').show()
+
+      // keep alive every 15 secs
+      window.setInterval(function () {
+        keepAlive(mgmtIP, cpSid)
+      }, 60000);
     } catch (err) {
-      console.log('error: ', err)
+      console.error('error: ', err)
     }
-    console.log("SID is", cpSid)
 
-    // var settings = {
-    //   "url": "https://192.168.1.253/web_api/show-access-rulebase",
-    //   "method": "POST",
-    //   "timeout": 0,
-    //   "headers": {
-    //     "Content-Type": "application/json",
-    //     "X-chkp-sid": cpSid
-    //   },
-    //   "data": JSON.stringify({ "offset": 0, "limit": 20, "name": "Network", "details-level": "standard", "use-object-dictionary": true }),
-    // };
-
-    // $.ajax(settings).done(function (response) {
-    //   console.log(response);
-    // });
-
-
-    //Show access layers 
+    // Show access layers 
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("X-chkp-sid", cpSid);
@@ -250,14 +239,10 @@
 
     fetch("https://" + mgmtIP + "/web_api/show-access-layers", requestOptions)
       .then(response => response.json())
-      .then(result => {
-        console.log("result", result)
-        populateAccessLayers(result["access-layers"], cpSid)
-        $('#setup').hide()
-        $('#main').show()
-      })
-      .catch(error => console.log('error', error));
-    //retrieve hosts
+      .then(result => populateAccessLayers(result["access-layers"], cpSid))
+      .catch(error => console.error('error', error));
+
+    // retrieve hosts
     fetch("https://" + mgmtIP + "/web_api/show-hosts", {
       method: 'POST',
       headers: {
@@ -271,13 +256,10 @@
       })
     })
       .then(response => response.json())
-      .then(result => {
-        console.log("host objects:", result)
-        populateHosts(result["objects"])
-      })
-      .catch(error => console.log('error', error));
+      .then(result => populateHosts(result["objects"]))
+      .catch(error => console.error('error', error));
 
-    //retrieve networks
+    // retrieve networks
     fetch("https://" + mgmtIP + "/web_api/show-networks", {
       method: 'POST',
       headers: {
@@ -291,13 +273,10 @@
       })
     })
       .then(response => response.json())
-      .then(result => {
-        console.log("network objects:", result)
-        populateNetworks(result["objects"])
-      })
-      .catch(error => console.log('error', error));
+      .then(result => populateNetworks(result["objects"]))
+      .catch(error => console.error('error', error));
 
-    //retrieve security zones
+    // retrieve security zones
     fetch("https://" + mgmtIP + "/web_api/show-security-zones", {
       method: 'POST',
       headers: {
@@ -310,14 +289,11 @@
       })
     })
       .then(response => response.json())
-      .then(result => {
-        console.log("security zones:", result)
-        populateSecurityZones(result["objects"])
-      })
-      .catch(error => console.log('error', error));
+      .then(result => populateSecurityZones(result["objects"]))
+      .catch(error => console.error('error', error));
 
 
-    //retrieve dynamic objects
+    // retrieve dynamic objects
     fetch("https://" + mgmtIP + "/web_api/show-dynamic-objects", {
       method: 'POST',
       headers: {
@@ -330,13 +306,10 @@
       })
     })
       .then(response => response.json())
-      .then(result => {
-        console.log("dynamic objects:", result)
-        populateDynamicObjects(result["objects"])
-      })
-      .catch(error => console.log('error', error));
+      .then(result => populateDynamicObjects(result["objects"]))
+      .catch(error => console.error('error', error));
 
-    //retrieve services-tcp
+    // retrieve services-tcp
     fetch("https://" + mgmtIP + "/web_api/show-services-tcp", {
       method: 'POST',
       headers: {
@@ -350,16 +323,12 @@
       })
     })
       .then(response => response.json())
-      .then(result => {
-        console.log("TCP Service Objects:", result)
-        populateServices(result["objects"])
-      })
-      .catch(error => console.log('error', error));
+      .then(result => populateServices(result.objects))
+      .catch(error => console.error('error', error));
   }
 
-  //populate access layers
+  // populate access layers
   function populateAccessLayers(accessLayers, cpSid) {
-    console.log('access layers', accessLayers)
     accessLayers.forEach((layer) => {
       $('#layers-dropdown').append('<a class="dropdown-item" href="#" onclick="retrieveSelectedRulebase(\'' + layer.uid + '\'' + ',\'' + cpSid + '\'' + ')">' + layer.name + '</a>')
     })
@@ -368,7 +337,6 @@
 
   // populate network host objects in new rule form
   function populateHosts(Hosts) {
-    console.log('Hosts', Hosts)
     Hosts.forEach((host) => {
       $('#HostsGroup').append('<option>' + host.name + '</option>')
       $('#HostsGroup2').append('<option>' + host.name + '</option>')
@@ -376,47 +344,42 @@
     )
   }
   // populate service objects in new rule form
-  function populateServices(Services) {
-    Services.forEach((service) => {
+  function populateServices(services) {
+    services.forEach((service) => {
       $('#TCPServices').append('<option>' + service.name + '</option>')
-    }
-    )
+    })
+    $('select').selectpicker();
   }
 
-  //populate networks in new rule form
+  // populate networks in new rule form
   function populateNetworks(Networks) {
-    console.log('Networks', Networks)
     Networks.forEach((network) => {
       $('#NetworksGroup').append('<option>' + network.name + '</option>')
       $('#NetworksGroup2').append('<option>' + network.name + '</option>')
     })
   }
 
-  //populate security zones in new rule form
+  // populate security zones in new rule form
   function populateSecurityZones(Zones) {
-    console.log('Zones', Zones)
     Zones.forEach((zone) => {
       $('#SecurityZonesGroup').append('<option>' + zone.name + '</option>')
       $('#SecurityZonesGroup2').append('<option>' + zone.name + '</option>')
     })
   }
 
-  //populate dynamic obects in new rule form
+  // populate dynamic obects in new rule form
   function populateDynamicObjects(Objs) {
-    console.log('Dynamic Objects:', Objs)
     Objs.forEach((obj) => {
       $('#DynamicObjGroup').append('<option>' + obj.name + '</option>')
       $('#DynamicObjGroup2').append('<option>' + obj.name + '</option>')
-      $('select').selectpicker();
     })
   }
 
 
 
-  //function to retrieve rulebase of selected layer
+  // function to retrieve rulebase of selected layer
   async function retrieveSelectedRulebase(rulebaseId, cpSid) {
-    console.log('retrieving rulebase', rulebaseId)
-    var mgmtIP = "10.0.1.247" // document.getElementById('mgmt-ip').value
+    var mgmtIP = document.getElementById('mgmt-ip').value
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("X-chkp-sid", cpSid);
@@ -429,7 +392,7 @@
       "use-object-dictionary": false,
       "show-hits": true
     });
-    RBID = rulebaseId
+
     var requestOptions = {
       method: 'POST',
       headers: myHeaders,
@@ -440,17 +403,14 @@
     fetch("https://" + mgmtIP + "/web_api/show-access-rulebase", requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log("rulebase result", result)
         CreateTableFromJSON(result.rulebase)
+        $('#add-rule').click(() => newRule(cpSid, rulebaseId, mgmtIP))
       })
-      .catch(error => console.log('error', error));
+      .catch(error => console.error('error', error));
   }
-  //keep alive 
-  window.setInterval(function () {
-    keepAlive
-  }, 5000);
+
   // New Rule Function
-  function newRule(cpSid, RBID, mgmtIP) {
+  function newRule(cpSid, rulebaseId, mgmtIP) {
     var source = document.getElementById('source').value
     var destination = document.getElementById('destination').value
     var service = document.getElementById('service').value
@@ -459,7 +419,6 @@
     var tracking = document.getElementById('tracking').value
     var rulename = document.getElementById('name').value
     try {
-      console.log("Rulebase is:", RBID)
       var addRuleResponse = fetch("https://" + mgmtIP + "/web_api/add-access-rule", {
         method: 'POST',
         headers: {
@@ -467,26 +426,20 @@
           "X-chkp-sid": cpSid
         },
         body: JSON.stringify({
-          "layer": '"' + RBID + '"',
-          "source": '"' + source + '"',
-          "destination": '"' + destination + '"',
-          "position": '"' + position + '"',
-          "name": '"' + rulename + '"',
-          "service": '"' + service + '"',
-          "track": '"' + tracking + '"'
+          "layer": rulebaseId,
+          "source": source,
+          "destination": destination,
+          "position": position,
+          "name": rulename,
+          "service": service,
+          "track": tracking
         }
         )
-      })
-
+      }).then(() => publishChanges(cpSid, mgmtIP))
+        .catch(err => console.error('Error adding rule', err))
     }
     catch (err) {
-      console.log('error: ', err)
-      console.log('taskID: ', addRuleResponse)
-      console.log('layer', rulebaseId)
-      console.log('position', position)
-      console.log('name', rulename)
-      console.log('service', service)
-      console.log('track', tracking)
+      console.error('error: ', err)
     }
   }
 
@@ -505,8 +458,6 @@
         "Hits": rule.hits.value
       }
     ))
-
-    console.log('rulessss', Rules)
 
     // EXTRACT VALUE FOR HTML HEADER. 
     var col = [];
@@ -548,7 +499,7 @@
     divContainer.innerHTML = "";
     divContainer.appendChild(table);
   }
-  function publishChanges(cpSid) {
+  function publishChanges(cpSid, mgmtIP) {
     try {
       var publishResponse = fetch("https://" + mgmtIP + "/web_api/publish", {
         method: 'POST',
@@ -556,30 +507,27 @@
           "Content-Type": "application/json",
           "X-chkp-sid": cpSid
         },
-        body: JSON.stringify({
-        }
-        )
+        body: JSON.stringify({})
       })
 
     }
     catch (err) {
-      console.log('error: ', err, 'taskid:', publishChanges)
+      console.error('error: ', err)
     }
   }
   function shownewruleform() {
     $('#NewRuleForm').show()
     $('#addrulebutton').hide()
   }
-  function keepAlive(cpSid) {
+  function keepAlive(mgmtIP, cpSid) {
     fetch("https://" + mgmtIP + "/web_api/keepalive", {
       method: 'POST',
       headers: {
         "Content-Type": "application/json",
         "X-chkp-sid": cpSid
       },
-      body: {}
+      body: JSON.stringify({})
     })
-    console.log("keep alive response:", response)
   }
 </script>
 
