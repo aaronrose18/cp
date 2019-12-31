@@ -78,7 +78,7 @@
             <div class="form-row">
               <div class="col-auto">
                 <label for="source">Source:</label>
-                <select multiple id="source" class="my-select" multiple data-live-search="true">
+                <select multiple id="source" class="my-select" data-live-search="true">
                   <optgroup id=HostsGroup label="Hosts"></optgroup>
                   <optgroup id=NetworksGroup label="Networks"></optgroup>
                   <optgroup id=DynamicObjGroup label="Dynamic Objects">"</optgroup>
@@ -87,7 +87,7 @@
               </div>
               <div class="col-auto">
                 <label for="destination">Destination:</label>
-                <select multiple id="destination" class="my-select" multiple data-live-search="true">
+                <select multiple id="destination" class="my-select" data-live-search="true">
                   <optgroup id=HostsGroup2 label="Hosts"></optgroup>
                   <optgroup id=NetworksGroup2 label="Networks"></optgroup>
                   <optgroup id=DynamicObjGroup2 label="Dynamic Objects">"</optgroup>
@@ -97,7 +97,7 @@
 
               <div class="col-auto">
                 <label for="service">Service:</label>
-                <select multiple id="service" class="my-select" multiple data-live-search="true">
+                <select multiple id="service" class="my-select" data-live-search="true">
                   <optgroup id=TCPServices label="TCP Services"></optgroup>
                   <optgroup id=UDPServices label="UDP Services"></optgroup>
                 </select>
@@ -159,7 +159,7 @@
           Management Server IP:<br>
           <input type="text" name="ip" id="mgmt-ip"><br>
           <br>
-          API Server Port (default = 18190)<br>
+          API Server Port<br>
           <input type="text" name="port" id="port-login" placeholder="443"><br>
           <br>
           <br>
@@ -323,7 +323,24 @@
       })
     })
       .then(response => response.json())
-      .then(result => populateServices(result.objects))
+      .then(result => populateServicesTCP(result.objects))
+      .catch(error => console.error('error', error));
+
+    // retrieve services-udp
+    fetch("https://" + mgmtIP + "/web_api/show-services-udp", {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "X-chkp-sid": cpSid
+      },
+      body: JSON.stringify({
+        "limit": 500,
+        "offset": 0,
+        "details-level": "standard"
+      })
+    })
+      .then(response => response.json())
+      .then(result => populateServicesUDP(result.objects))
       .catch(error => console.error('error', error));
   }
 
@@ -343,10 +360,17 @@
     }
     )
   }
-  // populate service objects in new rule form
-  function populateServices(services) {
+  // populate TCP service objects in new rule form
+  function populateServicesTCP(services) {
     services.forEach((service) => {
       $('#TCPServices').append('<option>' + service.name + '</option>')
+    })
+  }
+
+  // populate UDP service objects in new rule form
+  function populateServicesUDP(services) {
+    services.forEach((service) => {
+      $('#UDPServices').append('<option>' + service.name + '</option>')
     })
     $('select').selectpicker();
   }
