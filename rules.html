@@ -2,13 +2,14 @@
 <html lang="en">
 
 <head>
-  <!-- basic.html -->
   <title>Connection Setup</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.12/dist/css/bootstrap-select.min.css">
+
   <style>
     table,
     th,
@@ -39,7 +40,7 @@
     <p>
       <!-- Get access layers and show rulebase -->
       <div class="btn-group">
-        <button type="button" class="btn btn-secondary">Access Layer:</button>
+        <button type="button" class="btn btn-secondary">Select Access Layer:</button>
         <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
           aria-haspopup="true" aria-expanded="false">
           <span class="sr-only">Toggle Dropdown</span>
@@ -47,69 +48,110 @@
         <div class="dropdown-menu" id="layers-dropdown">
         </div>
         <br>
+      </div>
+      <br>
+      <br>
+      <div>
         <p id="showData"></p>
       </div>
     </p>
     <br>
     <br>
     <br>
+    <!-- New Rule Form -->
+    <div id="addrulebutton">
+      <button type="button" class="btn btn-primary" onclick="return shownewruleform(event)">Add a Rule</button>
+    </div>
     <p>
-      <h3>New Rule:</h3>
-      <form>
-        <div class="form-row">
-          <div class="col-auto">
-            <input type="text" class="form-control" placeholder="Source" id="source"><br>
-          </div>
-          <div class="col-auto">
-            <input type="text" class="form-control" placeholder="Destination" id="destination"><br>
-          </div>
-          <div class="col-auto">
-            <select id="service" class="form-control position-static">
-              <option selected>Service</option>
-              <option>HTTP</option>
-              <option>HTTPS</option>
-              <option>DNS</option>
-              <option>SSH</option>
-            </select><br>
-          </div>
-          <div class="col-auto">
-            <select id="action" class="form-control position-static">
-              <option selected>Action</option>
-              <option>HTTP</option>
-              <option>HTTPS</option>
-            </select><br>
-          </div>
-          <div class="col-auto">
-            <select id="tracking" class="form-control position-static">
-              <option selected>Tracking</option>
-              <option>Log</option>
-              <option>None/option>
-            </select><br>
-          </div>
-          <div class="col-auto">
-            <select id="position" class="form-control position-static">
-              <option selected>Position</option>
-              <option>First</option>
-              <option>Last</option>
-              <option>Before Last</option>
-            </select>
-          </div>
-        </div>
-        <p>
-          <button type="submit" class="btn btn-success"
-            onclick="alert('Validating Rule...please wait')">Validate</button>
-          <button type="submit" class="btn btn-warning"
-            onclick="alert('Publishing Changes to Policy...please wait')">Publish</button>
 
-          <button type="reset" class="btn btn-danger">Reset</button>
-        </p>
-      </form>
-    </p>
-    <br>
-    <br>
-    <br>
-    <br>
+      <div id="NewRuleForm">
+        <br>
+        <br>
+        <br>
+        <h3>New Rule:</h3>
+        <form>
+          <div class="form-row">
+            <div class="col-2">
+              <input type="text" class="form-control" placeholder="Rule Name" id="name"> </div>
+          </div>
+          <div class="form-row">
+            <div class="col-auto">
+              <label for="source">Source:</label>
+              <select multiple id="source" class="my-select" multiple data-live-search="true">
+                <optgroup id=HostsGroup label="Hosts"></optgroup>
+                <optgroup id=NetworksGroup label="Networks"></optgroup>
+                <optgroup id=DynamicObjGroup label="Dynamic Objects">"</optgroup>
+                <optgroup id=SecurityZonesGroup label=" Security Zones"></optgroup>
+              </select>
+            </div>
+            <div class="col-auto">
+              <label for="destination">Destination:</label>
+              <select multiple id="destination" class="my-select" multiple data-live-search="true">
+                <optgroup id=HostsGroup2 label="Hosts"></optgroup>
+                <optgroup id=NetworksGroup2 label="Networks"></optgroup>
+                <optgroup id=DynamicObjGroup2 label="Dynamic Objects">"</optgroup>
+                <optgroup id=SecurityZonesGroup2 label=" Security Zones"></optgroup>
+              </select>
+            </div>
+
+            <div class="col-auto">
+              <label for="service">Service:</label>
+              <select multiple id="service" class="my-select" multiple data-live-search="true">
+                <option>HTTP</option>
+                <option>HTTPS</option>
+                <option>DNS</option>
+                <option>SSH</option>
+                <optgroup id="TCPServices" label="TCP Services"></optgroup>
+                <optgroup id="UDPServices" label="UDP Services"></optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="col-auto">
+              <label for="action">Action:</label>
+              <select id="action" class="my-select">
+                <option selected></option>
+                <option>Accept</option>
+                <option>Drop</option>
+                <option>Reject</option>
+              </select><br>
+            </div>
+            <div class="col-auto">
+              <label for="tracking">Track:</label>
+              <select id="tracking" class="my-select">
+                <option selected></option>
+                <option>Log</option>
+                <option>None</option>
+              </select><br>
+            </div>
+            <div class="col-auto">
+              <label for="position">Position:</label>
+              <select id="position" class="my-select">
+                <option selected></option>
+                <option>top</option>
+                <option>bottom</option>
+              </select>
+            </div>
+          </div>
+
+
+          <!-- New Rule Form Buttons -->
+          <p>
+            <button type="submit" class="btn btn-success" onclick="return newRule(event)">Add</button>
+            <button type="submit" class="btn btn-warning" onclick="return publishChanges(event)">Publish</button>
+            <button type="reset" class="btn btn-danger">Clear</button>
+          </p>
+        </form>
+      </div>
   </div>
+
+  </p>
+  <br>
+  <br>
+  <br>
+  <br>
+  </div>
+  <!-- Setup & Login form -->
   <div id="setup">
     <h3>Setup</h3>
     <p>
@@ -122,7 +164,7 @@
         <input type="text" name="ip" id="mgmt-ip"><br>
         <br>
         API Server Port (default = 18190)<br>
-        <input type="text" name="port" id="port-login" placeholder="18190"><br>
+        <input type="text" name="port" id="port-login" placeholder="443"><br>
         <br>
         <br>
         User name:<br>
@@ -135,19 +177,22 @@
       </form>
     </p>
   </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
     integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
     crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
     integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
     crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.12/dist/js/bootstrap-select.min.js"></script>
 </body>
 <script>
   $('#main').hide()
+  $('#NewRuleForm').hide()
   async function checkPointLogin(e) {
     e.preventDefault()
-    var mgmtIP = "192.168.1.253" // document.getElementById('mgmt-ip').value
-    var mgmtUser = "admin" // document.getElementById('user-login').value
+    var mgmtIP = "10.0.1.247" // document.getElementById('mgmt-ip').value
+    var mgmtUser = "apiuser" // document.getElementById('user-login').value
     var mgmtPass = "vpn123" // document.getElementById('password-login').value
     var mgmtPort = "443" // document.getElementById('port-login').value
     try {
@@ -166,6 +211,7 @@
       console.log('error: ', err)
     }
     console.log("SID is", cpSid)
+
     // var settings = {
     //   "url": "https://192.168.1.253/web_api/show-access-rulebase",
     //   "method": "POST",
@@ -209,6 +255,104 @@
         $('#main').show()
       })
       .catch(error => console.log('error', error));
+    //retrieve hosts
+    fetch("https://" + mgmtIP + "/web_api/show-hosts", {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "X-chkp-sid": cpSid
+      },
+      body: JSON.stringify({
+        "limit": 50,
+        "offset": 0,
+        "details-level": "standard"
+      })
+    })
+      .then(response => response.json())
+      .then(result => {
+        console.log("host objects:", result)
+        populateHosts(result["objects"])
+      })
+      .catch(error => console.log('error', error));
+
+    //retrieve networks
+    fetch("https://" + mgmtIP + "/web_api/show-networks", {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "X-chkp-sid": cpSid
+      },
+      body: JSON.stringify({
+        "limit": 50,
+        "offset": 0,
+        "details-level": "standard"
+      })
+    })
+      .then(response => response.json())
+      .then(result => {
+        console.log("network objects:", result)
+        populateNetworks(result["objects"])
+      })
+      .catch(error => console.log('error', error));
+
+    //retrieve security zones
+    fetch("https://" + mgmtIP + "/web_api/show-security-zones", {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "X-chkp-sid": cpSid
+      },
+      body: JSON.stringify({
+        "limit": 50,
+        "offset": 0
+      })
+    })
+      .then(response => response.json())
+      .then(result => {
+        console.log("security zones:", result)
+        populateSecurityZones(result["objects"])
+      })
+      .catch(error => console.log('error', error));
+
+
+    //retrieve dynamic objects
+    fetch("https://" + mgmtIP + "/web_api/show-dynamic-objects", {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "X-chkp-sid": cpSid
+      },
+      body: JSON.stringify({
+        "limit": 50,
+        "offset": 0
+      })
+    })
+      .then(response => response.json())
+      .then(result => {
+        console.log("dynamic objects:", result)
+        populateDynamicObjects(result["objects"])
+      })
+      .catch(error => console.log('error', error));
+
+    //retrieve services-tcp
+    fetch("https://" + mgmtIP + "/web_api/show-services-tcp", {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "X-chkp-sid": cpSid
+      },
+      body: JSON.stringify({
+        "limit": 500,
+        "offset": 0,
+        "details-level": "standard"
+      })
+    })
+      .then(response => response.json())
+      .then(result => {
+        console.log("TCP Service Objects:", result)
+        populateServices(result["objects"])
+      })
+      .catch(error => console.log('error', error));
   }
 
   //populate access layers
@@ -217,12 +361,60 @@
     accessLayers.forEach((layer) => {
       $('#layers-dropdown').append('<a class="dropdown-item" href="#" onclick="retrieveSelectedRulebase(\'' + layer.uid + '\'' + ',\'' + cpSid + '\'' + ')">' + layer.name + '</a>')
     })
+
   }
+
+  // populate network host objects in new rule form
+  function populateHosts(Hosts) {
+    console.log('Hosts', Hosts)
+    Hosts.forEach((host) => {
+      $('#HostsGroup').append('<option>' + host.name + '</option>')
+      $('#HostsGroup2').append('<option>' + host.name + '</option>')
+    }
+    )
+  }
+  // populate service objects in new rule form
+  function populateServices(Services) {
+    Services.forEach((service) => {
+      $('#TCPServices').append('<option>' + service.name + '</option>')
+    }
+    )
+  }
+
+  //populate networks in new rule form
+  function populateNetworks(Networks) {
+    console.log('Networks', Networks)
+    Networks.forEach((network) => {
+      $('#NetworksGroup').append('<option>' + network.name + '</option>')
+      $('#NetworksGroup2').append('<option>' + network.name + '</option>')
+    })
+  }
+
+  //populate security zones in new rule form
+  function populateSecurityZones(Zones) {
+    console.log('Zones', Zones)
+    Zones.forEach((zone) => {
+      $('#SecurityZonesGroup').append('<option>' + zone.name + '</option>')
+      $('#SecurityZonesGroup2').append('<option>' + zone.name + '</option>')
+    })
+  }
+
+  //populate dynamic obects in new rule form
+  function populateDynamicObjects(Objs) {
+    console.log('Dynamic Objects:', Objs)
+    Objs.forEach((obj) => {
+      $('#DynamicObjGroup').append('<option>' + obj.name + '</option>')
+      $('#DynamicObjGroup2').append('<option>' + obj.name + '</option>')
+      $('select').selectpicker();
+    })
+  }
+
+
 
   //function to retrieve rulebase of selected layer
   async function retrieveSelectedRulebase(rulebaseId, cpSid) {
     console.log('retrieving rulebase', rulebaseId)
-    var mgmtIP = "192.168.1.253" // document.getElementById('mgmt-ip').value
+    var mgmtIP = "10.0.1.247" // document.getElementById('mgmt-ip').value
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("X-chkp-sid", cpSid);
@@ -232,9 +424,10 @@
       "limit": 50,
       "uid": rulebaseId,
       "details-level": "standard",
-      "use-object-dictionary": false
+      "use-object-dictionary": false,
+      "show-hits": true
     });
-
+    RBID = rulebaseId
     var requestOptions = {
       method: 'POST',
       headers: myHeaders,
@@ -250,13 +443,49 @@
       })
       .catch(error => console.log('error', error));
   }
-
-  function newrule() {
+  //keep alive 
+  window.setInterval(function () {
+    keepAlive
+  }, 5000);
+  // New Rule Function
+  function newRule(cpSid, RBID, mgmtIP) {
     var source = document.getElementById('source').value
     var destination = document.getElementById('destination').value
     var service = document.getElementById('service').value
     var action = document.getElementById('action').value
     var position = document.getElementById('position').value
+    var tracking = document.getElementById('tracking').value
+    var rulename = document.getElementById('name').value
+    try {
+      console.log("Rulebase is:", RBID)
+      var addRuleResponse = fetch("https://" + mgmtIP + "/web_api/add-access-rule", {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+          "X-chkp-sid": cpSid
+        },
+        body: JSON.stringify({
+          "layer": '"' + RBID + '"',
+          "source": '"' + source + '"',
+          "destination": '"' + destination + '"',
+          "position": '"' + position + '"',
+          "name": '"' + rulename + '"',
+          "service": '"' + service + '"',
+          "track": '"' + tracking + '"'
+        }
+        )
+      })
+
+    }
+    catch (err) {
+      console.log('error: ', err)
+      console.log('taskID: ', addRuleResponse)
+      console.log('layer', rulebaseId)
+      console.log('position', position)
+      console.log('name', rulename)
+      console.log('service', service)
+      console.log('track', tracking)
+    }
   }
 
 
@@ -264,13 +493,14 @@
   function CreateTableFromJSON(rulebase) {
     var Rules = rulebase.map((rule) => (
       {
-        "Rule Number": rule["rule-number"],
-        "Rule Name": rule.name,
+        "Rule #": rule["rule-number"],
+        "Name": rule.name,
         "Source": rule.source[0].name,
         "Destination": rule.destination[0].name,
         "Service": rule.service[0].name,
         "Action": rule.action.name,
-        "Tracking": rule.track.type.name
+        "Tracking": rule.track.type.name,
+        "Hits": rule.hits.value
       }
     ))
 
@@ -315,6 +545,39 @@
     var divContainer = document.getElementById("showData");
     divContainer.innerHTML = "";
     divContainer.appendChild(table);
+  }
+  function publishChanges(cpSid) {
+    try {
+      var publishResponse = fetch("https://" + mgmtIP + "/web_api/publish", {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+          "X-chkp-sid": cpSid
+        },
+        body: JSON.stringify({
+        }
+        )
+      })
+
+    }
+    catch (err) {
+      console.log('error: ', err, 'taskid:', publishChanges)
+    }
+  }
+  function shownewruleform() {
+    $('#NewRuleForm').show()
+    $('#addrulebutton').hide()
+  }
+  function keepAlive(cpSid) {
+    fetch("https://" + mgmtIP + "/web_api/keepalive", {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "X-chkp-sid": cpSid
+      },
+      body: {}
+    })
+    console.log("keep alive response:", response)
   }
 </script>
 
